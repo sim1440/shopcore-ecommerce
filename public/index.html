@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopCore Live Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink:#FF6B9D; --rose:#FF3D77; --fuchsia:#C44DB5; --purple:#7B2FBE;
+  --dark:#1A0A2E; --card:#2D1B3D; --card2:#3D2150; --border:rgba(255,107,157,0.15);
+  --lavender:#E8D5F5; --mint:#A8E6CF; --yellow:#FFD93D; --green:#4CAF7D;
+  --white:#FFFFFF; --gray:#9B8BAB; --cream:#FFF0FA;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--white);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 60% 50% at 10% 20%,rgba(196,77,181,.15) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 60% at 90% 80%,rgba(123,47,190,.18) 0%,transparent 70%);pointer-events:none;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(26,10,46,.9);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:1rem;height:58px;flex-wrap:wrap;}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;
+  background:linear-gradient(135deg,var(--pink),var(--fuchsia));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-status{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--gray);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--gray);}
+.status-dot.live{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.nav-user{margin-left:auto;display:flex;align-items:center;gap:.6rem;font-size:.82rem;}
+.user-badge{background:rgba(255,107,157,.15);border:1px solid rgba(255,107,157,.3);
+  color:var(--pink);padding:3px 10px;border-radius:20px;font-size:.72rem;}
+.logout-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--gray);
+  padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.78rem;transition:all .2s;}
+.logout-btn:hover{border-color:var(--pink);color:var(--pink);}
+
+/* LAYOUT */
+main{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+
+/* LOGIN PAGE */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:85vh;}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;
+  padding:2.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4);}
+.login-logo{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;
+  background:linear-gradient(135deg,var(--pink),var(--fuchsia));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;text-align:center;margin-bottom:.3rem;}
+.login-sub{text-align:center;color:var(--gray);font-size:.85rem;margin-bottom:2rem;}
+.login-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+.login-tab{flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.08);
+  background:transparent;color:var(--gray);cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:.85rem;transition:all .2s;}
+.login-tab.active{background:linear-gradient(135deg,var(--pink),var(--fuchsia));color:#fff;border-color:transparent;}
+.form-group{margin-bottom:1rem;}
+.form-label{font-size:.78rem;color:var(--gray);margin-bottom:.4rem;display:block;letter-spacing:.5px;text-transform:uppercase;}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:10px 14px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.9rem;transition:border .2s;}
+.form-input:focus{outline:none;border-color:var(--pink);}
+.hint-box{background:rgba(168,230,207,.08);border:1px solid rgba(168,230,207,.2);
+  border-radius:10px;padding:.7rem 1rem;margin-bottom:1.2rem;font-size:.78rem;color:var(--mint);line-height:1.6;}
+.submit-btn{width:100%;background:linear-gradient(135deg,var(--pink),var(--fuchsia));
+  color:#fff;border:none;border-radius:12px;padding:12px;font-family:'DM Sans',sans-serif;
+  font-size:.95rem;font-weight:600;cursor:pointer;transition:opacity .2s;}
+.submit-btn:hover{opacity:.85;}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed;}
+.login-error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);
+  color:#FF6B6B;border-radius:8px;padding:.6rem 1rem;font-size:.82rem;margin-bottom:1rem;display:none;}
+
+/* DEMO APP */
+#demo-page{display:none;}
+.page-title{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:.3rem;}
+.page-sub{color:var(--gray);font-size:.88rem;margin-bottom:1.5rem;}
+
+/* TABS */
+.tabs{display:flex;gap:.4rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.tab{padding:7px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.08);
+  background:transparent;color:var(--gray);cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-size:.82rem;transition:all .2s;}
+.tab:hover{color:var(--white);border-color:rgba(255,107,157,.3);}
+.tab.active{background:linear-gradient(135deg,var(--pink),var(--fuchsia));color:#fff;border-color:transparent;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:1.3rem;
+  transition:all .2s;position:relative;overflow:hidden;}
+.card:hover{border-color:rgba(255,107,157,.25);transform:translateY(-2px);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;}
+@media(max-width:600px){.grid-2{grid-template-columns:1fr;}}
+
+/* PRODUCT CARDS */
+.product-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;transition:all .2s;}
+.product-card:hover{border-color:rgba(255,107,157,.3);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.3);}
+.product-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;
+  background:linear-gradient(135deg,var(--card2),rgba(123,47,190,.3));}
+.product-body{padding:1rem;}
+.product-name{font-weight:600;font-size:.95rem;margin-bottom:.3rem;}
+.product-price{color:var(--pink);font-size:1.1rem;font-weight:700;font-family:'Playfair Display',serif;}
+.product-stock{font-size:.75rem;color:var(--gray);margin-bottom:.75rem;}
+.add-cart-btn{width:100%;background:linear-gradient(135deg,var(--pink),var(--fuchsia));
+  color:#fff;border:none;border-radius:8px;padding:8px;cursor:pointer;font-weight:600;font-size:.82rem;
+  transition:opacity .2s;}
+.add-cart-btn:hover{opacity:.85;}
+.add-cart-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* RESPONSE BOX */
+.response-box{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06);border-radius:12px;
+  padding:1rem;font-family:'DM Mono',monospace;font-size:.75rem;line-height:1.8;
+  max-height:260px;overflow-y:auto;margin-top:.75rem;white-space:pre-wrap;word-break:break-all;}
+.response-box::-webkit-scrollbar{width:4px;}
+.response-box::-webkit-scrollbar-thumb{background:rgba(255,107,157,.3);border-radius:4px;}
+.json-k{color:#C44DB5;} .json-s{color:#FFD93D;} .json-n{color:#A8E6CF;} .json-b{color:#FF6B9D;}
+
+/* SECTION LABEL */
+.section-label{font-size:.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);margin-bottom:.6rem;}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.7rem;font-weight:600;}
+.badge-green{background:rgba(76,175,125,.15);color:var(--mint);border:1px solid rgba(76,175,125,.3);}
+.badge-pink{background:rgba(255,107,157,.15);color:var(--pink);border:1px solid rgba(255,107,157,.3);}
+.badge-yellow{background:rgba(255,217,61,.15);color:var(--yellow);border:1px solid rgba(255,217,61,.3);}
+.badge-gray{background:rgba(155,139,171,.1);color:var(--gray);border:1px solid rgba(155,139,171,.2);}
+
+/* ACTION BTN */
+.action-btn{background:linear-gradient(135deg,var(--pink),var(--fuchsia));color:#fff;
+  border:none;border-radius:10px;padding:9px 20px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  font-weight:600;font-size:.85rem;transition:opacity .2s;display:inline-flex;align-items:center;gap:6px;}
+.action-btn:hover{opacity:.85;}
+.action-btn:disabled{opacity:.4;cursor:not-allowed;}
+.action-btn.outline{background:transparent;border:1px solid var(--pink);color:var(--pink);}
+
+/* CART ITEM */
+.cart-item{display:flex;align-items:center;gap:1rem;padding:.8rem;background:var(--card2);
+  border-radius:10px;margin-bottom:.5rem;}
+.cart-emoji{font-size:1.8rem;width:44px;text-align:center;}
+.cart-info{flex:1;}
+.cart-name{font-weight:600;font-size:.9rem;}
+.cart-price{color:var(--pink);font-size:.85rem;}
+.cart-qty{background:rgba(255,107,157,.1);border:1px solid rgba(255,107,157,.2);
+  color:var(--pink);padding:2px 10px;border-radius:6px;font-size:.8rem;font-weight:600;}
+
+/* ORDER ROW */
+.order-row{display:flex;align-items:center;gap:1rem;padding:.9rem 1rem;
+  background:var(--card2);border-radius:10px;margin-bottom:.5rem;flex-wrap:wrap;}
+.order-id{font-family:'DM Mono',monospace;font-size:.8rem;color:var(--lavender);}
+.order-amount{font-weight:700;color:var(--pink);font-family:'Playfair Display',serif;}
+
+/* STAT CARD */
+.stat-card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.2rem;text-align:center;}
+.stat-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;
+  background:linear-gradient(135deg,var(--pink),var(--fuchsia));-webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;background-clip:text;}
+.stat-lbl{font-size:.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:.2rem;}
+
+/* TOAST */
+#toast{position:fixed;bottom:2rem;right:2rem;z-index:999;
+  background:linear-gradient(135deg,var(--pink),var(--fuchsia));color:#fff;
+  padding:.8rem 1.5rem;border-radius:12px;font-weight:600;font-size:.85rem;
+  transform:translateY(100px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(255,107,157,.4);}
+#toast.show{transform:translateY(0);opacity:1;}
+
+/* SPINNER */
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-right:4px;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* COUPON INPUT */
+.coupon-row{display:flex;gap:.5rem;margin-bottom:.75rem;}
+.coupon-input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:8px 12px;color:var(--white);font-family:'DM Mono',monospace;font-size:.85rem;}
+.coupon-input:focus{outline:none;border-color:var(--pink);}
+
+/* AI CARD */
+.ai-rec{display:flex;gap:1rem;padding:.9rem;background:var(--card2);border-radius:12px;margin-bottom:.5rem;
+  border:1px solid rgba(196,77,181,.2);transition:all .2s;}
+.ai-rec:hover{border-color:rgba(196,77,181,.5);}
+.ai-emoji{font-size:2rem;width:48px;text-align:center;flex-shrink:0;}
+.ai-reason{font-size:.8rem;color:var(--gray);margin-top:.2rem;line-height:1.5;}
+
+.empty-state{text-align:center;padding:2.5rem;color:var(--gray);}
+.empty-icon{font-size:3rem;margin-bottom:.5rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">ShopCore</div>
+  <div class="nav-status"><div class="status-dot live" id="api-dot"></div><span id="api-status">API Connected</span></div>
+  <div class="nav-user" id="nav-user" style="display:none">
+    <span id="nav-name"></span>
+    <span class="user-badge" id="nav-role"></span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div id="toast"></div>
+
+<main>
+
+<!-- ══════ LOGIN PAGE ══════ -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">ShopCore</div>
+    <div class="login-sub">E-Commerce API — Live Demo</div>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('customer',this)">👤 Customer</button>
+      <button class="login-tab" onclick="switchLoginTab('admin',this)">🔑 Admin</button>
+    </div>
+
+    <div class="hint-box" id="login-hint">
+      <strong>Customer account:</strong><br>
+      📧 demo@shopcore.dev<br>
+      🔑 demo1234
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="login-email" type="email" value="demo@shopcore.dev">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-password" type="password" value="demo1234">
+    </div>
+    <button class="submit-btn" id="login-btn" onclick="doLogin()">Login to ShopCore</button>
+  </div>
+</div>
+
+<!-- ══════ DEMO APP ══════ -->
+<div id="demo-page">
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('products',this)">🛍️ Products</button>
+    <button class="tab" onclick="showTab('cart',this)">🛒 Cart</button>
+    <button class="tab" onclick="showTab('orders',this)">📋 Orders</button>
+    <button class="tab" onclick="showTab('ai',this)">🤖 AI Picks</button>
+    <button class="tab" onclick="showTab('admin',this)" id="admin-tab" style="display:none">📊 Admin</button>
+    <button class="tab" onclick="showTab('api',this)">⚡ Live API</button>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="tab-content active" id="tab-products">
+    <div class="page-title">Browse Products</div>
+    <div class="page-sub">All products fetched live from MySQL database</div>
+    <div id="products-grid" class="grid-3">
+      <div class="empty-state"><div class="spin"></div> Loading products...</div>
+    </div>
+  </div>
+
+  <!-- CART -->
+  <div class="tab-content" id="tab-cart">
+    <div class="page-title">Shopping Cart 🛒</div>
+    <div class="page-sub">Items saved to your session — place a real order below</div>
+
+    <div class="grid-2">
+      <div>
+        <div class="section-label">Cart Items</div>
+        <div id="cart-items"><div class="empty-state"><div class="empty-icon">🛒</div>Your cart is empty<br><small>Add products from the Products tab</small></div></div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="section-label">Order Summary</div>
+          <div style="margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.9rem">
+              <span style="color:var(--gray)">Subtotal</span>
+              <span id="cart-subtotal">$0.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.9rem">
+              <span style="color:var(--gray)">Discount</span>
+              <span id="cart-discount" style="color:var(--mint)">-$0.00</span>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.08);margin:.75rem 0;padding-top:.75rem;display:flex;justify-content:space-between;font-weight:700">
+              <span>Total</span>
+              <span id="cart-total" style="color:var(--pink);font-family:'Playfair Display',serif;font-size:1.2rem">$0.00</span>
+            </div>
+          </div>
+
+          <div class="section-label">Coupon Code</div>
+          <div class="coupon-row">
+            <input class="coupon-input" id="coupon-input" placeholder="e.g. SAVE20" maxlength="20">
+            <button class="action-btn" onclick="applyCoupon()">Apply</button>
+          </div>
+          <div id="coupon-result" style="font-size:.8rem;margin-bottom:.75rem"></div>
+
+          <div class="form-group">
+            <label class="form-label">Shipping Address</label>
+            <input class="form-input" id="ship-street" placeholder="Street" style="margin-bottom:.4rem">
+            <input class="form-input" id="ship-city" placeholder="City" style="margin-bottom:.4rem">
+            <input class="form-input" id="ship-state" placeholder="State">
+          </div>
+
+          <button class="action-btn" style="width:100%;justify-content:center" onclick="placeOrder()" id="place-order-btn">
+            Place Order 🎉
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDERS -->
+  <div class="tab-content" id="tab-orders">
+    <div class="page-title">My Orders 📋</div>
+    <div class="page-sub">Real orders stored in MySQL — each has a unique ID</div>
+    <button class="action-btn outline" onclick="loadOrders()" style="margin-bottom:1rem">🔄 Refresh Orders</button>
+    <div id="orders-list"><div class="empty-state"><div class="empty-icon">📋</div>No orders yet<br><small>Place an order from the Cart tab</small></div></div>
+  </div>
+
+  <!-- AI -->
+  <div class="tab-content" id="tab-ai">
+    <div class="page-title">AI Recommendations ✨</div>
+    <div class="page-sub">Claude AI analyzes your purchase history and suggests products</div>
+    <button class="action-btn" onclick="loadAI()" id="ai-btn" style="margin-bottom:1.5rem">
+      ✨ Get My Recommendations
+    </button>
+    <div id="ai-results"><div class="empty-state"><div class="empty-icon">🤖</div>Click the button to get AI picks<br><small>Powered by Anthropic Claude API</small></div></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="tab-content" id="tab-admin">
+    <div class="page-title">Admin Dashboard 📊</div>
+    <div class="page-sub">Role-protected — only admins can see this. JWT role verified server-side.</div>
+    <div class="grid-3" id="admin-stats" style="margin-bottom:1.5rem">
+      <div class="stat-card"><div class="stat-val" id="stat-users">-</div><div class="stat-lbl">Total Users</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-products">-</div><div class="stat-lbl">Products</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-orders">-</div><div class="stat-lbl">Orders</div></div>
+      <div class="stat-card"><div class="stat-val" id="stat-revenue">-</div><div class="stat-lbl">Revenue</div></div>
+    </div>
+    <div class="section-label">Recent Orders</div>
+    <div id="admin-orders"></div>
+  </div>
+
+  <!-- LIVE API -->
+  <div class="tab-content" id="tab-api">
+    <div class="page-title">Live API Calls ⚡</div>
+    <div class="page-sub">Every button makes a real HTTP request to the running Node.js server</div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem">
+      <button class="action-btn outline" onclick="apiCall('GET','/api/products','Products')">GET /products</button>
+      <button class="action-btn outline" onclick="apiCall('GET','/api/auth/me','My Profile')">GET /auth/me</button>
+      <button class="action-btn outline" onclick="apiCall('GET','/api/cart','Cart')">GET /cart</button>
+      <button class="action-btn outline" onclick="apiCall('GET','/api/orders','Orders')">GET /orders</button>
+      <button class="action-btn outline" onclick="apiCall('GET','/health','Health')">GET /health</button>
+    </div>
+
+    <div class="section-label">Last Response</div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+      <div class="status-dot" id="live-dot"></div>
+      <span id="live-status" style="font-size:.82rem;color:var(--gray)">Click a button above</span>
+      <span id="live-time" style="font-size:.75rem;color:var(--gray);margin-left:auto"></span>
+    </div>
+    <div class="response-box" id="live-response">// Response will appear here...</div>
+  </div>
+
+</div>
+</main>
+
+<script>
+const API = 'http://localhost:3000';
+let token = null, userRole = null, userName = null;
+let cartItems = [], appliedDiscount = 0, appliedCoupon = null;
+const EMOJI = {'cat-shoes':'👟','cat-clothes':'👗','cat-bags':'👜',null:'🛍️'};
+
+// ── Login ─────────────────────────────────────────────
+function switchLoginTab(type, btn) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  if (type === 'admin') {
+    document.getElementById('login-email').value = 'admin@shopcore.dev';
+    document.getElementById('login-password').value = 'admin1234';
+    document.getElementById('login-hint').innerHTML = '<strong>Admin account:</strong><br>📧 admin@shopcore.dev<br>🔑 admin1234';
+  } else {
+    document.getElementById('login-email').value = 'demo@shopcore.dev';
+    document.getElementById('login-password').value = 'demo1234';
+    document.getElementById('login-hint').innerHTML = '<strong>Customer account:</strong><br>📧 demo@shopcore.dev<br>🔑 demo1234';
+  }
+}
+
+async function doLogin() {
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  btn.innerHTML = '<span class="spin"></span>Logging in...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('login-email').value,
+        password: document.getElementById('login-password').value
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || 'Login failed');
+
+    token = data.accessToken;
+    userRole = data.user.role;
+    userName = data.user.name;
+
+    document.getElementById('login-page').style.display = 'none';
+    document.getElementById('demo-page').style.display = 'block';
+    document.getElementById('nav-user').style.display = 'flex';
+    document.getElementById('nav-name').textContent = userName;
+    document.getElementById('nav-role').textContent = userRole === 'admin' ? '🔑 Admin' : '👤 Customer';
+
+    if (userRole === 'admin') document.getElementById('admin-tab').style.display = 'block';
+
+    loadProducts();
+    toast(`Welcome back, ${userName.split(' ')[0]}! 💖`);
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.innerHTML = 'Login to ShopCore';
+    btn.disabled = false;
+  }
+}
+
+function logout() {
+  token = null; userRole = null; cartItems = [];
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('demo-page').style.display = 'none';
+  document.getElementById('nav-user').style.display = 'none';
+  document.getElementById('admin-tab').style.display = 'none';
+  showTab('products', document.querySelector('.tab'));
+}
+
+// ── Products ──────────────────────────────────────────
+async function loadProducts() {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '<div class="empty-state"><div class="spin"></div> Loading...</div>';
+  try {
+    const res = await fetch(`${API}/api/products`);
+    const data = await res.json();
+    if (!data.products.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div>No products yet<br><small>Run the seed script to add demo data</small></div>';
+      return;
+    }
+    grid.innerHTML = data.products.map(p => `
+      <div class="product-card">
+        <div class="product-img">${EMOJI[p.categoryId] || '🛍️'}</div>
+        <div class="product-body">
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">$${p.price}</div>
+          <div class="product-stock">📦 ${p.stock} in stock</div>
+          <button class="add-cart-btn" onclick="addToCart('${p.id}','${p.name}',${p.price})">
+            Add to Cart 🛒
+          </button>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    grid.innerHTML = `<div class="empty-state">❌ Could not load products<br><small>${e.message}</small></div>`;
+  }
+}
+
+// ── Cart ──────────────────────────────────────────────
+async function addToCart(productId, name, price) {
+  if (!token) return toast('Please login first!');
+  try {
+    const res = await fetch(`${API}/api/cart`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({productId, quantity: 1})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+
+    const existing = cartItems.find(i => i.productId === productId);
+    if (existing) existing.quantity++;
+    else cartItems.push({productId, name, price, quantity: 1});
+
+    renderCart();
+    toast(`${name} added to cart! 🛒`);
+  } catch(e) { toast('Error: ' + e.message); }
+}
+
+function renderCart() {
+  const el = document.getElementById('cart-items');
+  if (!cartItems.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div>Cart is empty</div>';
+    updateCartTotals(0);
+    return;
+  }
+  el.innerHTML = cartItems.map(i => `
+    <div class="cart-item">
+      <div class="cart-emoji">${EMOJI[null]}</div>
+      <div class="cart-info">
+        <div class="cart-name">${i.name}</div>
+        <div class="cart-price">$${i.price} each</div>
+      </div>
+      <span class="cart-qty">×${i.quantity}</span>
+    </div>`).join('');
+  const subtotal = cartItems.reduce((s,i) => s + i.price * i.quantity, 0);
+  updateCartTotals(subtotal);
+}
+
+function updateCartTotals(subtotal) {
+  document.getElementById('cart-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('cart-discount').textContent = `-$${appliedDiscount.toFixed(2)}`;
+  document.getElementById('cart-total').textContent = `$${Math.max(0, subtotal - appliedDiscount).toFixed(2)}`;
+}
+
+async function applyCoupon() {
+  const code = document.getElementById('coupon-input').value.trim();
+  const subtotal = cartItems.reduce((s,i) => s + i.price * i.quantity, 0);
+  const result = document.getElementById('coupon-result');
+  if (!code) return;
+  try {
+    const res = await fetch(`${API}/api/coupons/validate`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({code, orderAmount: subtotal})
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    appliedDiscount = data.coupon.discount;
+    appliedCoupon = code;
+    result.innerHTML = `<span style="color:var(--mint)">✅ ${code} applied — saving $${appliedDiscount.toFixed(2)}!</span>`;
+    updateCartTotals(subtotal);
+    toast(`Coupon ${code} applied! 🎟️`);
+  } catch(e) {
+    result.innerHTML = `<span style="color:#FF6B6B">❌ ${e.message}</span>`;
+  }
+}
+
+async function placeOrder() {
+  if (!cartItems.length) return toast('Add items to cart first!');
+  const btn = document.getElementById('place-order-btn');
+  btn.innerHTML = '<span class="spin"></span>Placing order...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(`${API}/api/orders`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({
+        shippingAddress: {
+          street: document.getElementById('ship-street').value || '123 Main St',
+          city: document.getElementById('ship-city').value || 'Mobile',
+          state: document.getElementById('ship-state').value || 'AL'
+        },
+        couponCode: appliedCoupon
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    cartItems = []; appliedDiscount = 0; appliedCoupon = null;
+    renderCart();
+    toast(`Order placed! ID: ${data.order.id.slice(0,8)}... 🎉`);
+    showTab('orders', document.querySelectorAll('.tab')[2]);
+    loadOrders();
+  } catch(e) {
+    toast('Error: ' + e.message);
+  } finally {
+    btn.innerHTML = 'Place Order 🎉';
+    btn.disabled = false;
+  }
+}
+
+// ── Orders ────────────────────────────────────────────
+async function loadOrders() {
+  const el = document.getElementById('orders-list');
+  el.innerHTML = '<div class="empty-state"><div class="spin"></div> Loading...</div>';
+  try {
+    const res = await fetch(`${API}/api/orders`, {headers:{'Authorization':`Bearer ${token}`}});
+    const data = await res.json();
+    if (!data.orders.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>No orders yet</div>';
+      return;
+    }
+    const statusColors = {pending:'badge-yellow',confirmed:'badge-pink',processing:'badge-pink',shipped:'badge-green',delivered:'badge-green',cancelled:'badge-gray'};
+    el.innerHTML = data.orders.map(o => `
+      <div class="order-row">
+        <div>
+          <div class="order-id">#${o.id.slice(0,8).toUpperCase()}</div>
+          <div style="font-size:.75rem;color:var(--gray);margin-top:2px">${new Date(o.createdAt).toLocaleDateString()} · ${o.items?.length || 0} item(s)</div>
+        </div>
+        <span class="badge ${statusColors[o.status]||'badge-gray'}">${o.status}</span>
+        <div class="order-amount" style="margin-left:auto">$${o.totalAmount}</div>
+      </div>`).join('');
+  } catch(e) { el.innerHTML = `<div class="empty-state">❌ ${e.message}</div>`; }
+}
+
+// ── AI ────────────────────────────────────────────────
+async function loadAI() {
+  const btn = document.getElementById('ai-btn');
+  const el = document.getElementById('ai-results');
+  btn.innerHTML = '<span class="spin"></span>Asking Claude AI...';
+  btn.disabled = true;
+  el.innerHTML = '<div class="empty-state"><div class="spin"></div> Claude is thinking...</div>';
+  try {
+    const res = await fetch(`${API}/api/recommendations`, {headers:{'Authorization':`Bearer ${token}`}});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    el.innerHTML = data.recommendations.map(r => `
+      <div class="ai-rec">
+        <div class="ai-emoji">🛍️</div>
+        <div>
+          <div style="font-weight:600;font-size:.92rem">${r.name}</div>
+          <div class="ai-reason">💭 ${r.reason}</div>
+          ${r.product ? `<div style="color:var(--pink);font-size:.82rem;margin-top:.3rem;font-weight:600">$${r.product.price}</div>` : ''}
+        </div>
+      </div>`).join('');
+    toast('AI recommendations ready! ✨');
+  } catch(e) {
+    el.innerHTML = `<div class="empty-state">🤖 AI needs an API key to work<br><small>Add ANTHROPIC_API_KEY to .env to enable this feature</small></div>`;
+  } finally {
+    btn.innerHTML = '✨ Get My Recommendations';
+    btn.disabled = false;
+  }
+}
+
+// ── Admin ─────────────────────────────────────────────
+async function loadAdmin() {
+  try {
+    const res = await fetch(`${API}/api/admin/dashboard`, {headers:{'Authorization':`Bearer ${token}`}});
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    document.getElementById('stat-users').textContent = data.stats.totalUsers;
+    document.getElementById('stat-products').textContent = data.stats.totalProducts;
+    document.getElementById('stat-orders').textContent = data.stats.totalOrders;
+    document.getElementById('stat-revenue').textContent = `$${Number(data.stats.totalRevenue||0).toFixed(0)}`;
+    const statusColors = {pending:'badge-yellow',confirmed:'badge-pink',delivered:'badge-green',cancelled:'badge-gray'};
+    document.getElementById('admin-orders').innerHTML = data.recentOrders.map(o => `
+      <div class="order-row">
+        <div>
+          <div class="order-id">#${o.id.slice(0,8).toUpperCase()}</div>
+          <div style="font-size:.75rem;color:var(--gray)">${o.User?.name || 'Customer'} · ${o.User?.email || ''}</div>
+        </div>
+        <span class="badge ${statusColors[o.status]||'badge-gray'}">${o.status}</span>
+        <div class="order-amount" style="margin-left:auto">$${o.totalAmount}</div>
+      </div>`).join('') || '<div class="empty-state">No orders yet</div>';
+  } catch(e) { toast('Admin error: ' + e.message); }
+}
+
+// ── Live API ──────────────────────────────────────────
+async function apiCall(method, path, label) {
+  const dot = document.getElementById('live-dot');
+  const status = document.getElementById('live-status');
+  const time = document.getElementById('live-time');
+  const resp = document.getElementById('live-response');
+  resp.textContent = '// Loading...';
+  const start = Date.now();
+  try {
+    const res = await fetch(API + path, {
+      method,
+      headers: token ? {'Authorization':`Bearer ${token}`} : {}
+    });
+    const data = await res.json();
+    const elapsed = Date.now() - start;
+    dot.className = 'status-dot live';
+    status.textContent = `${label} — ${res.status} OK`;
+    time.textContent = `${elapsed}ms`;
+    resp.innerHTML = syntaxHL(JSON.stringify(data, null, 2));
+  } catch(e) {
+    dot.className = 'status-dot';
+    dot.style.background = '#FF6B6B';
+    status.textContent = 'Error: ' + e.message;
+    resp.textContent = e.message;
+  }
+}
+
+function syntaxHL(str) {
+  return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, m => {
+    if (/^"/.test(m)) return /:$/.test(m) ? `<span class="json-k">${m}</span>` : `<span class="json-s">${m}</span>`;
+    if (/true|false/.test(m)) return `<span class="json-b">${m}</span>`;
+    if (/null/.test(m)) return `<span style="color:var(--gray)">${m}</span>`;
+    return `<span class="json-n">${m}</span>`;
+  });
+}
+
+// ── Tabs ──────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if (id === 'orders') loadOrders();
+  if (id === 'admin') loadAdmin();
+}
+
+// ── Toast ─────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ──────────────────────────────────────────────
+fetch(`${API}/health`).then(r => r.json()).then(() => {
+  document.getElementById('api-dot').className = 'status-dot live';
+  document.getElementById('api-status').textContent = 'API Connected ✓';
+}).catch(() => {
+  document.getElementById('api-dot').className = 'status-dot';
+  document.getElementById('api-dot').style.background = '#FF6B6B';
+  document.getElementById('api-status').textContent = 'API Offline — start server first';
+});
+</script>
+</body>
+</html>
